@@ -1,0 +1,49 @@
+#! python3
+import requests
+import os
+import bs4 #beautiful soup
+
+#URL variable starts with the main site and updates it repeatedly in a for loop with the URL of the "previous link button"
+url = 'https://www.smbc-comics.com/'
+
+#download the image files to a folder in the cwd(current working directory) named smbc.
+#exist_ok = True prevents the function from throwing and exception if this folder already exists.
+os.makedirs('smbc', exist_ok = True)
+
+
+firstComicURL = '2002-09-05'
+
+
+while not url.endswith(firstComicURL): #stop loop with the URL of the first comic published
+
+    #Download the page.
+    print('Downloading page %s...' % url) #learning to use string formatting. %s is substituted by the url variable
+    r = requests.get(url) #download the page
+    r.raise_for_status() #end the program if the download goes wrong
+    soup = bs4.BeautifulSoup(r.text) #create a BS object from the downloaded text
+
+    #Fimd the URL of the comic image
+    comicImage = soup.select('#cc-comic')
+    if comicImage == []: #if it doesn't find an image, move on.
+        print('Could not find image')
+    else:
+        comicURL = comicImage[0].get('src') #gets the image file
+        print('Downloading image %s...' %(comicImage))
+        r = requests.get(comicURL) #downloads the file
+        r.raise_for_status() #end if download goes wrong
+
+    #Save the image to ./smbc
+        #.basename method will return the original name of the file.
+        #.join the basename to the 'smbc' folder
+        #'wb' = write binary mode
+        imageFile = open(os.path.join('smbc', os.path.basename(comicURL)), 'wb')
+        #I think the followin iteration is to prevent from loading the entire file into memory at once??
+        for chunk in r.iter_content(100000):
+            imageFile.write(chunk)
+        imageFile.close()
+
+    #Get the previous button's URL
+    previousLink = soup.select('#navbottom > nav > a.cc-prev') #gets the previous link URL
+    url = previousLink[0].get('href')
+
+print ('Done')
