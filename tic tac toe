@@ -1,0 +1,233 @@
+#! python3
+import random
+import copy
+
+# gameBoard = {'top-L' : ' ', 'top-M' : ' ', 'top-R' : ' ', 'mid-L' : ' ', 'mid-M' : ' ', 'mid-R' : ' ', 'low-L' : ' ', 'low-M' : ' ', 'low-R' : ' '}
+gameBoard = {'7' : ' ', '8' : ' ', '9' : ' ', '4' : ' ', '5' : ' ', '6' : ' ', '1' : ' ', '2' : ' ', '3' : ' '}
+#this is the board
+letter = ''
+#this is X or O
+turn = ''
+#this is the turn
+cornerList = ['1','3','5','7']
+sideList = ['2','4','6','8']
+center = '5'
+slots = 9
+
+def printBoard(board):
+    #prints the playing board
+    print(board['7'] + '|' + board['8'] + '|' + board['9'])
+    print('-+-+-')
+    print(board['4'] + '|' + board['5'] + '|' + board['6'])
+    print('-+-+-')
+    print(board['1'] + '|' + board['2'] + '|' + board['3'])
+
+def inputXOchoice():
+    #lets the player choose between X or O
+    #Returns a list with the player's letter as first item and computer's letter as second item.
+    global letter
+    while not (letter == 'X' or letter == 'O'):
+        print('¿Qué letra quieres usar para jugar? Elige entre  X y O')
+        letter = input().upper()
+
+    #first letter is the player, second letter is the computer
+    if letter == 'X':
+        return ['X', 'O']
+    else:
+        return ['O', 'X']
+
+def whoStarts():
+    #randomly chose who goes first
+    if random.randint(0,1) == 0:
+        return 'computer'
+    else:
+        return 'player'
+
+def playAgain():
+    #If the player wants to play again (by answering s or sí), return TRUE, else FALSE
+    print('¿Quieres jugar otra vez? (sí o no)') #should try for errors here but w/e
+    return input().lower().startswith('s') #return TRUE if the player types s or sí
+
+def moveFunction(board,letter,move):
+    #this function will modify the values of the original list of the playing board
+    board[move] = letter
+
+def isWinner(board,letter):
+    return ((board['7'] == letter and board['8'] == letter and board['9'] == letter) or #top horizontal
+    (board['4'] == letter and board['5'] == letter and board['6'] == letter) or #mid horizontal
+    (board['1'] == letter and board['2'] == letter and board['3'] == letter) or #bot horizontal
+    (board['1'] == letter and board['4'] == letter and board['7'] == letter) or #left vertical
+    (board['2'] == letter and board['5'] == letter and board['8'] == letter) or #mid vertical
+    (board['3'] == letter and board['6'] == letter and board['9'] == letter) or #low vertical
+    (board['1'] == letter and board['5'] == letter and board['9'] == letter) or #diagonal 1
+    (board['7'] == letter and board['5'] == letter and board['3'] == letter)) #diagonal
+
+
+def getBoardCopy(board):
+    #Make a duplicate of the board and return it
+    gameboardDuplicate = copy.deepcopy(board)
+    return gameboardDuplicate
+
+def isSlotFree(board, move):
+    #return True is a slot on the board is empty
+    return board[move] == ' '
+
+def getPlayerMove(board):
+    #get the player to introduce the move.
+    move = ' ' #if the while loop is changed from OR NOT to AND in the isSlotFree condition, it gives a KeyError and I don't know why.
+    while move not in ['1','2','3','4','5','6','7','8','9'] or not isSlotFree(board, move): #I don't know why this logic works
+        print('Introduce el siguiente movimiento: (1-9)')
+        move = input()  #somehow prevent the player from introducing A-Z or other characters?
+    return move
+
+def chooseRandomMove(board,movesList):
+    #returns a valid move from the list on the board.
+    #returns none is there isn't a valid move.
+    possibleMoves = []
+    for i in movesList:
+        if isSlotFree(board,i):
+            possibleMoves.append(i)
+
+    if len(possibleMoves) != 0:
+        return random.choice(possibleMoves) #random.choice returns a randomly selected element from the specified sequence. The sequence can be a string, a range, a list, a tuple or any other kind of sequence.
+    else:
+        return None
+
+#----computer AI starts below:----------------------------
+
+# 1. See if computer can win the game.
+# 2. See if computer can lose the game.
+# 3. Move into center if free.
+# 4. Move into corner if free.
+# 5. Move into side if free.
+
+def getComputerMove(board, computerLetter):
+    #based on a board and the computer's letter, determine where computer moves
+    if computerLetter == 'X':
+        playerLetter = 'O'
+    else:
+        playerLetter = 'X'
+    #with the above code, the same function can be applied whether computerLetter is X or O
+    for i in range(slots): #maybe ---> for slot in gameBoard.keys():  ?????? <---------------
+        gameboardTemp = getBoardCopy(board)
+        slotToString = str(i+1) #converts slots from integer to string
+        if isSlotFree(gameboardTemp,slotToString):
+            moveFunction(gameboardTemp, computerLetter, slotToString)
+            if isWinner(gameboardTemp, computerLetter):
+                return slotToString
+    #the for loop iterates every possible move from 1 to 9.
+    #gameboardTemp is a temporary copy of the gameboard list.
+    #getBoardCopy returns an identical but separate board list value.
+    #isSlotFree checks if the space is free and simulates a move for the computer.
+    #if it is a winning move, the function returns the resulting slot (i)
+    #if no spaces give the win, the loop will end.
+
+    #if player can win in next move: block, same loop but for player.
+    for i in range(slots):
+        gameboardTemp = getBoardCopy(board)
+        slotToString = str(i+1) #converts slots from integer to string
+        if isSlotFree(gameboardTemp, slotToString):
+            moveFunction(gameboardTemp, playerLetter, slotToString)
+            if isWinner(gameboardTemp, playerLetter):
+                return slotToString
+
+    move = chooseRandomMove(board, cornerList) #corners list
+    if move != None: #random move function checks for isSlotFree. If all spaces are taken, the None value is returned.
+        return move
+
+    #Move in center, corner or side spaces.
+    if isSlotFree(board, center): #check if center is free to move
+        return center
+
+    return chooseRandomMove(board, sideList) #side list
+
+def isBoardFull(board):
+    #return TRUE if every slot is taken
+    global slots
+    for i in range(slots):
+        slotToString = str(i+1) #converts slots from integer to string
+        if isSlotFree(board,slotToString):
+            return False #si algún slot is free, devuelve false.
+    return True
+
+#---------------------Game Code-----------------------
+
+print('Bienvenidos al Tres en Raya!')
+
+
+while True:
+    #reset the gameBoard
+    gameBoard = {'7' : ' ', '8' : ' ', '9' : ' ', '4' : ' ', '5' : ' ', '6' : ' ', '1' : ' ', '2' : ' ', '3' : ' '}
+
+    playerLetter, computerLetter = inputXOchoice()
+
+    turn = whoStarts()
+    print('player = ' + playerLetter)
+    print('computer = ' + computerLetter)
+
+    print('El ' + turn + ' empieza a mover.')
+    game = True #flags if the game is being played currently.
+
+    #the loop below will jump between the players and the computer's turn as long as Game == True
+    #the turn variable below is set by the whosTarts function.
+    while game:
+        if turn == 'player':
+            #1) print the board
+            #2) get the move from player
+            #3) move on the board
+            printBoard(gameBoard)
+            move = getPlayerMove(gameBoard)
+            moveFunction(gameBoard, playerLetter, move)
+
+            #check if the player won with the move
+            if isWinner(gameBoard, playerLetter):
+                printBoard(gameBoard)
+                print('¡Victoria! ¡A beber todo el personal!')
+                game = False #do not continue to computer's turn
+
+            #check if the game is a tie
+            else:
+                if isBoardFull(gameBoard):
+                    printBoard(gameBoard)
+                    print('Empate!')
+                    break
+                else:
+                    turn = 'computer'
+                    #if no tie or win, the turn variable switches.
+
+        else: #if turn = 'computer'
+            move = getComputerMove(gameBoard, computerLetter)
+            moveFunction(gameBoard, computerLetter, move)
+
+            #check if computer wins with the move
+            if isWinner(gameBoard, computerLetter):
+                printBoard(gameBoard)
+                print('Has perdido al tres en raya, qué vergüenza...')
+                game = False
+
+            #check if the game is a tie
+            else:
+                if isBoardFull(gameBoard):
+                    printBoard(gameBoard)
+                    print('Empate!')
+                    break
+                else:
+                    turn = 'player'
+
+    if not playAgain():  #ask the palyer to play again once the game flag is false or the loop breaks
+        break
+
+
+# for i in range(9):
+#     printBoard(gameBoard) #print the board at the start of each turn
+#     print('Turno de ' + turn + '. ¿Dónde vas a mover?')
+#     move = input() #get player's move
+#     gameBoard[move] = turn #update the gameBoard with the move
+#     if turn == 'X': #change the player's turn
+#         turn = 'O'
+#     else:
+#         turn = 'X'
+
+
+
+
