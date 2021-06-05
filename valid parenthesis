@@ -1,0 +1,61 @@
+# given a string containing ()[]{} determine if the input is valid following bracketing rules
+
+
+def isValid(s):
+
+    class Stack():
+
+        def __init__(self):
+            self.items = []  # class variable that represents the items of the stack and has an empty list
+
+        def push(self, item):  # push a given item to the top of the stack
+            self.items.append(item)  # add to the end of the list (top of the stack)
+
+        def pop(self):  # return the top element of the stack
+            return self.items.pop()
+
+        def get_stack(self):  # look at stack list
+            return self.items
+
+        def is_empty(self):  # returns True if items is empty
+            return self.items == []
+
+        def peek(self):  # look at top item
+            if not self.is_empty():
+                return self.items[-1]
+
+    def matched_pair(pos1, pos2):
+
+        if pos1 == '(' and pos2 == ')' or pos1 == '[' and pos2 == ']' or pos1 == '{' and pos2 == '}':
+            return True
+        else:
+            return False
+
+    stack_object = Stack()  # generate stack object
+    is_valid = True  # flag whether the expression is valid in order to continue the loop
+    index = 0  # variable in order to keep track of loop
+
+    while index < len(s) and is_valid:
+        bracket = s[index]  # grab a parenthesis or bracket
+        if bracket in '([{':  # if it is an opening bracket, push onto the stack
+            stack_object.push(bracket)
+        else:  # if we find a closing bracket....
+            if stack_object.is_empty():  # and the stack is empty, logic is invalid.
+                is_valid = False
+            else:
+                popped = stack_object.pop()  # otherwise pop the closing bracket...
+                if not matched_pair(popped, bracket):  # and compare it with an opening bracket
+                    is_valid = False  # if there is no match, logic is false
+        index += 1  # keep looping while the condition is met
+
+    if stack_object.is_empty() and is_valid:  # final logic, if stack remains empty, isValid
+        return True
+    else:
+        return False
+
+
+print(isValid('{[([()])]}()[]'))
+print(isValid('{{}(})[]'))
+
+
+
