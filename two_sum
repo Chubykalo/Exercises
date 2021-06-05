@@ -1,0 +1,18 @@
+#Both lists and arrays are indexed and can be iterated through. Arrays are good for numerical operations
+#lists = ()
+
+array = [2,5,7,11]
+target = 9
+
+
+def two_sum(array, target):   #the function takes the array and the taget number provided
+    solution = 0
+    for i in range(len(array) - 1): #first adder is provided by loop through array from first to penultimate digit
+        for j in range(i+1, len(array)): #second adder is provided by loop through first adder index +1 to last digit len(array)
+            if array[i] + array[j] == target: #adder 1 + adder 2 = target number
+                print (array[i], array[j])
+                solution = 1
+    if solution == 0:
+        print('''sorry mate, there's no solution''')
+
+two_sum(array,target)
