@@ -1,0 +1,37 @@
+# signed integer limits:
+max = 2147483647
+min = -2147483648
+
+
+def reverse_integer(x):
+    if x == 0:
+        return 0
+    sign = ''
+    input_string = str(x)
+    if input_string.startswith('-'):
+        sign = '-'
+        input_string = input_string.strip('-')
+    input_string = input_string.rstrip('0')
+    result = int(sign + input_string[::-1])
+    if result < min or result > max:
+        return 0
+    return result
+
+
+
+    # reverse_string = str(integer)[::-1]  # convert to string and reverse it
+    # if reverse_string.startswith('0') and reverse_string.endswith('-'):
+    #     reverse_string = reverse_string[1:]  # remove the 0 from beginning of string (first char)
+    #     reverse_string = '-' + reverse_string[:-1]  # remove the - from the end of the string and add it to beginning.
+    #     print(int(reverse_string))
+    # elif reverse_string.startswith('0'):
+    #     reverse_string = reverse_string[1:]
+    #     print(int(reverse_string))
+    # elif reverse_string.endswith('-'):
+    #     reverse_string = '-' + reverse_string[:-1]
+    #     print(int(reverse_string))
+    # else:
+    #     print(int(reverse_string))
+
+
+reverse_integer(948572304987523)
